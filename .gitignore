@@ -1,0 +1,26 @@
+# Android / Gradle
+.gradle/
+build/
+**/build/
+local.properties
+*.iml
+.idea/
+.DS_Store
+captures/
+.cxx/
+*.apk
+*.aab
+*.ap_
+*.dex
+keystore.properties
+*.jks
+*.keystore
+
+# OS / editors
+.vscode/
+*.swp
+*~
+
+# W0 results may contain device screenshots; keep the folder, ignore contents
+AndroidDesk/w0probe/results/**
+!AndroidDesk/w0probe/results/.gitkeep

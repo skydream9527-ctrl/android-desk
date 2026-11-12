@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- M1 will wire this to a Compose activity. The HOME/DEFAULT filters are the product declaration. -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application
+        android:label="Android Desk"
+        android:icon="@mipmap/ic_launcher"
+        android:allowBackup="false">
+
+        <activity
+            android:name=".LauncherActivity"
+            android:exported="true"
+            android:launchMode="singleTask"
+            android:excludeFromRecents="true"
+            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden">
+            <!-- Product path: can be chosen as the default home screen. -->
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.HOME" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+            <!-- Preview path: open from the app list before it is set as home. -->
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
+</manifest>
