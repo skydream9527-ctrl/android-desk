@@ -28,6 +28,8 @@
 
 ## 3. GitHub 上运行的命令
 
+[Android build](../.github/workflows/android-build.yml) 在所有分支的推送和 PR 上运行。工作流进入默认分支后，也可以在 GitHub 的 Actions 页面手动运行。
+
 纯 Kotlin 模块的单测（不需要 Android SDK 以外的东西）：
 
 ```bash
@@ -47,6 +49,8 @@
 ```
 
 这些命令只在 GitHub 上跑，不要在本地执行。
+
+三项检查都通过后，打开对应的 GitHub Actions 运行记录，在 Artifacts 下载 `android-desk-debug`，解压得到 `app-debug.apk`。
 
 ## 4. 基线结果（2026-11-12）
 
