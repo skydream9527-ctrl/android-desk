@@ -1,6 +1,8 @@
 package com.skydream.androiddesk.app.ui
 
+import androidx.compose.foundation.shape.AbsoluteRoundedCornerShape
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.GenericShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.geometry.Offset
@@ -19,7 +21,7 @@ private val squircle: Shape = GenericShape { size, _ ->
     val rx = size.width / 2f
     val ry = size.height / 2f
     val steps = 96
-    for (i in 0..steps) {
+    for (i in 0 until steps) {
         val t = 2 * PI * i / steps
         val c = cos(t)
         val s = sin(t)
@@ -47,7 +49,7 @@ private val hexagon: Shape = GenericShape { size, _ ->
         val enter = Offset(corner.x + (prev.x - corner.x) * soften, corner.y + (prev.y - corner.y) * soften)
         val leave = Offset(corner.x + (next.x - corner.x) * soften, corner.y + (next.y - corner.y) * soften)
         if (i == 0) moveTo(enter.x, enter.y) else lineTo(enter.x, enter.y)
-        quadraticBezierTo(corner.x, corner.y, leave.x, leave.y)
+        quadraticTo(corner.x, corner.y, leave.x, leave.y)
     }
     close()
 }
@@ -58,7 +60,7 @@ private val flower: Shape = GenericShape { size, _ ->
     val cy = size.height / 2f
     val r = minOf(size.width, size.height) / 2f
     val steps = 144
-    for (i in 0..steps) {
+    for (i in 0 until steps) {
         val t = 2 * PI * i / steps
         val radius = r * (0.93 + 0.07 * cos(8 * t)).toFloat()
         val x = cx + radius * cos(t).toFloat()
@@ -70,11 +72,11 @@ private val flower: Shape = GenericShape { size, _ ->
 
 private val rounded: Shape = RoundedCornerShape(percent = 24)
 
-private val teardrop: Shape = RoundedCornerShape(
-    topStartPercent = 50,
-    topEndPercent = 50,
-    bottomEndPercent = 12,
-    bottomStartPercent = 50,
+private val teardrop: Shape = AbsoluteRoundedCornerShape(
+    topLeft = CornerSize(50),
+    topRight = CornerSize(50),
+    bottomRight = CornerSize(12),
+    bottomLeft = CornerSize(50),
 )
 
 fun IconShape.toShape(): Shape = when (this) {
