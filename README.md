@@ -56,7 +56,7 @@
 
 ## 代码
 
-[`AndroidDesk/`](AndroidDesk/) 是产品代码。构建方法见 [AndroidDesk/BUILD.md](AndroidDesk/BUILD.md)，逐文件状态见 [方案/开发方案.md](方案/开发方案.md) §1。
+[`AndroidDesk/`](AndroidDesk/) 是产品代码。构建与打包只在 GitHub 上进行，见 [AndroidDesk/BUILD.md](AndroidDesk/BUILD.md)；逐文件状态见 [方案/开发方案.md](方案/开发方案.md) §1。
 
 | 模块 | 职责 | 状态 |
 |---|---|---|
@@ -67,6 +67,10 @@
 | `app` | 桌面 APK | 骨架已写，能编译，未实机验证；多数界面待做 |
 | `sample-agent` | 样例助手 | 未开始 |
 | `w0probe` | 真机实测记录 | 待回填 |
+
+## 构建与打包
+
+**不要在本地搭建构建或测试环境。** 不要为了本项目安装 JDK、Android SDK，也不要在 Android Studio 里本地编译或出包。所有测试与打包都在 GitHub 上完成；真机安装或 W0 实测只使用 GitHub 产出的制品。详见 [AndroidDesk/BUILD.md](AndroidDesk/BUILD.md)。
 
 ## 路线
 

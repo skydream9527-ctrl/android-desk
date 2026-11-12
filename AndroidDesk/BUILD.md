@@ -8,7 +8,15 @@
 
 ---
 
-## 1. 环境
+## 1. 原则：只在 GitHub 上构建和打包
+
+**不要在本地搭建本项目的构建或测试环境。** 不要为了编译、单测或出包而安装 JDK、Android SDK，不要创建 `local.properties`，也不要在 Android Studio 里本地打包，或在本地安装模拟器来当测试环境。
+
+单测、组装和 APK（`:app`、W0 工具包等）一律在 GitHub 上完成（GitHub Actions 或仓库提供的其他托管流程）。需要在真机上安装或做 W0 实测时，只使用 GitHub 产出的制品，不得在本地编译出包。
+
+## 2. 构建环境（仅用于 GitHub 上的构建）
+
+下面这些是 GitHub 构建应使用的版本，不要求、也不应在本机准备：
 
 | 项 | 值 |
 |---|---|
@@ -18,13 +26,7 @@
 | Android Gradle Plugin / Kotlin / Compose BOM | 8.7.3 / 2.0.21 / 2024.12.01（见 `gradle/libs.versions.toml`） |
 | compileSdk / targetSdk / minSdk | 35 / 35 / 26 |
 
-首次构建前，在本目录创建 `local.properties`（已被 `.gitignore` 忽略）：
-
-```properties
-sdk.dir=/你的/Android/sdk/路径
-```
-
-## 2. 命令
+## 3. GitHub 上运行的命令
 
 纯 Kotlin 模块的单测（不需要 Android SDK 以外的东西）：
 
@@ -44,7 +46,9 @@ sdk.dir=/你的/Android/sdk/路径
 ./gradlew :app:lintDebug
 ```
 
-## 3. 基线结果（2026-11-12）
+这些命令只在 GitHub 上跑，不要在本地执行。
+
+## 4. 基线结果（2026-11-12）
 
 | 命令 | 结果 |
 |---|---|
@@ -52,9 +56,9 @@ sdk.dir=/你的/Android/sdk/路径
 | `:app:assembleDebug` | 通过，约 9 MB |
 | `:app:lintDebug` | 失败，1 个 error：`LauncherActivity must extend android.app.Activity`。入口 Activity 写好后消失 |
 
-没有在任何设备或模拟器上运行过。基线机器上没有模拟器镜像。
+没有在任何设备上运行过。
 
-## 4. 做到哪一步
+## 5. 做到哪一步
 
 | 部分 | 状态 |
 |---|---|
@@ -70,32 +74,18 @@ sdk.dir=/你的/Android/sdk/路径
 
 后三项留空的原因：阻塞级实测没有结论时先写实现，容易整段推翻。本轮的人机协同只作用于桌面自身，不经无障碍，不在此限。
 
-## 5. 模拟器
+## 6. 真机安装
 
-接手后先准备一台手机和一台平板模拟器（开发方案 WP0）。`sdkmanager` 与 `avdmanager` 在 SDK 的 `cmdline-tools/latest/bin/` 下；Apple 芯片用 `arm64-v8a`，Intel 用 `x86_64`。
-
-```bash
-sdkmanager "system-images;android-35;google_apis;arm64-v8a"
-```
+不要在本地准备模拟器镜像，也不要用 `sdkmanager` / `avdmanager` 搭建测试环境。需要验证时，从 GitHub 下载已打包的 APK，安装到真机：
 
 ```bash
-avdmanager create avd -n desk_phone -k "system-images;android-35;google_apis;arm64-v8a" -d pixel_8
-```
-
-```bash
-avdmanager create avd -n desk_tablet -k "system-images;android-35;google_apis;arm64-v8a" -d pixel_tablet
-```
-
-装好后安装并启动：
-
-```bash
-adb install -r app/build/outputs/apk/debug/app-debug.apk
+adb install -r <从 GitHub 下载的 app-debug.apk>
 ```
 
 ```bash
 adb shell am start -W -n com.skydream.androiddesk/.app.LauncherActivity
 ```
 
-## 6. W0 实测
+## 7. W0 实测
 
-`w0probe/README.md` 记录每项怎么跑。结果放到 `w0probe/results/<日期>/`。在真机结论出来之前，不要把「已支持自由窗口」写进设置界面。
+`w0probe/README.md` 记录每项怎么跑。结果放到 `w0probe/results/<日期>/`。在真机结论出来之前，不要把「已支持自由窗口」写进设置界面。W0 工具包如需出包，同样在 GitHub 上完成。
