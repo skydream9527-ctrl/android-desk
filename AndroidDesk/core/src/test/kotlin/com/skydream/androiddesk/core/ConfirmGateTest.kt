@@ -39,4 +39,26 @@ class ConfirmGateTest {
         val gate = ConfirmGate(ConfirmPolicy(ConfirmTier.AlwaysAsk))
         assertEquals(ConfirmDecision.Allow, gate.decide("t1", DesktopActionKind.Stop))
     }
+
+    @Test
+    fun arrangingTheDesktopAsksButMovingAroundItDoesNot() {
+        val gate = ConfirmGate(ConfirmPolicy(ConfirmTier.AlwaysAsk))
+        assertEquals(ConfirmDecision.AskUser, gate.decide("t1", DesktopActionKind.ArrangeDesktop))
+        assertEquals(ConfirmDecision.AskUser, gate.decide("t1", DesktopActionKind.LaunchApp))
+        assertEquals(ConfirmDecision.Allow, gate.decide("t1", DesktopActionKind.GoToPage))
+        assertEquals(ConfirmDecision.Allow, gate.decide("t1", DesktopActionKind.OpenDrawer))
+        assertEquals(ConfirmDecision.Allow, gate.decide("t1", DesktopActionKind.ReadDesktop))
+        assertEquals(ConfirmDecision.Allow, gate.decide("t1", DesktopActionKind.ReportStatus))
+    }
+
+    @Test
+    fun askOncePerTaskIsForgottenWhenTheTaskStops() {
+        val gate = ConfirmGate(ConfirmPolicy(ConfirmTier.AskOncePerTask))
+        assertEquals(ConfirmDecision.AskUser, gate.decide("t1", DesktopActionKind.ArrangeDesktop))
+        gate.markTaskConfirmed("t1")
+        assertEquals(ConfirmDecision.Allow, gate.decide("t1", DesktopActionKind.ArrangeDesktop))
+        assertEquals(ConfirmDecision.AskUser, gate.decide("t2", DesktopActionKind.ArrangeDesktop))
+        gate.stopTask("t1")
+        assertEquals(ConfirmDecision.AskUser, gate.decide("t1", DesktopActionKind.ArrangeDesktop))
+    }
 }

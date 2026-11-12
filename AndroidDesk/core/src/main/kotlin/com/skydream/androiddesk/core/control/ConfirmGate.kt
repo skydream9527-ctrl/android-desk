@@ -1,9 +1,12 @@
 package com.skydream.androiddesk.core.control
 
-enum class ConfirmTier {
-    AlwaysAsk,
-    AskOncePerTask,
-    NeverAsk,
+import kotlinx.serialization.Serializable
+
+@Serializable
+enum class ConfirmTier(val label: String, val hint: String) {
+    AlwaysAsk("每次都询问", "打开应用、改动桌面、发送、删除、付款前都先问你"),
+    AskOncePerTask("本任务免确认", "每个任务问一次；发送、付款、删除仍然每次问"),
+    NeverAsk("始终免确认", "不再询问。建议只临时使用"),
 }
 
 enum class DesktopActionKind {
@@ -25,6 +28,15 @@ enum class DesktopActionKind {
     EnterOtp,
     OpenSystemSettings,
     Stop,
+
+    /** Adding, removing, moving or restyling icons on this desktop. */
+    ArrangeDesktop,
+
+    /** Reading this desktop's own layout and the installed-app list (not other apps' screens). */
+    ReadDesktop,
+
+    /** The assistant telling the desktop what it is doing, for the pet and status line. */
+    ReportStatus,
 }
 
 enum class ConfirmDecision {
@@ -92,6 +104,7 @@ class ConfirmGate(
             action == DesktopActionKind.LaunchApp ||
             action == DesktopActionKind.TakeScreenshot ||
             action == DesktopActionKind.ReadUiTree ||
-            action == DesktopActionKind.MoveWindow
+            action == DesktopActionKind.MoveWindow ||
+            action == DesktopActionKind.ArrangeDesktop
     }
 }

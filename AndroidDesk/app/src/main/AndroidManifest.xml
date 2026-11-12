@@ -1,17 +1,43 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- M1 will wire this to a Compose activity. The HOME/DEFAULT filters are the product declaration. -->
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- Only to hand an uninstall request to the system's own confirmation screen. -->
+    <uses-permission android:name="android.permission.REQUEST_DELETE_PACKAGES" />
+
+    <!--
+        What this desktop needs to see: apps that can be launched, and other home screens
+        (to get back to the previous one). Deliberately not QUERY_ALL_PACKAGES.
+    -->
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.LAUNCHER" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.HOME" />
+        </intent>
+    </queries>
+
     <application
-        android:label="Android Desk"
+        android:label="@string/app_name"
         android:icon="@mipmap/ic_launcher"
-        android:allowBackup="false">
+        android:allowBackup="false"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.Desk">
 
         <activity
             android:name=".LauncherActivity"
             android:exported="true"
             android:launchMode="singleTask"
+            android:clearTaskOnLaunch="true"
+            android:stateNotNeeded="true"
             android:excludeFromRecents="true"
-            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden">
+            android:resumeWhilePausing="true"
+            android:taskAffinity=""
+            android:windowSoftInputMode="adjustResize"
+            android:configChanges="keyboard|keyboardHidden|navigation|orientation|screenSize|screenLayout|smallestScreenSize">
             <!-- Product path: can be chosen as the default home screen. -->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -24,5 +50,15 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!--
+            Assistant entry point (see sdk/DeskProtocol). Exported without a permission
+            because access is decided per calling package, by the user, inside the provider.
+        -->
+        <provider
+            android:name=".agent.AgentProvider"
+            android:authorities="com.skydream.androiddesk.agent"
+            android:exported="true"
+            tools:ignore="ExportedContentProvider" />
     </application>
 </manifest>
