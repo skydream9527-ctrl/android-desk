@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.drawable.AdaptiveIconDrawable
+import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.os.Build
 import android.util.LruCache
@@ -14,12 +15,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.graphics.luminance
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlin.math.roundToInt
 
 /**
- * An app icon split into the pieces the icon styles need. All bitmaps are square and show
- * the same visible window, so a style can stack them without re-aligning.
+ * An app icon split into the pieces the icon styles need. The adaptive layers show
+ * the same square window. Legacy artwork keeps its original aspect ratio.
  */
 class AppIconArt(
     /** The complete icon, unmasked: background plus foreground for adaptive icons. */
@@ -31,8 +34,8 @@ class AppIconArt(
     val adaptive: Boolean,
     /** A plate colour that suits the logo: the icon's own background, or a pale tint of it. */
     val plate: Color,
-    /** The icon's most characteristic colour. */
-    val accent: Color,
+    /** Average luminance of the visible logo, excluding its transparent pixels. */
+    val glyphLuminance: Float,
 )
 
 class IconLoader(context: Context, private val catalog: AppCatalog) {
@@ -71,19 +74,28 @@ class IconLoader(context: Context, private val catalog: AppCatalog) {
             val foreground = drawable.foreground
             val full = layers(background, foreground)
             val monochrome = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) drawable.monochrome else null
-            val accent = characteristicColor(full)
+            val glyph = foreground?.let { layers(it) }
             val base = if (background != null) averageColor(layers(background)) else Color.White
             return AppIconArt(
                 full = full.asImageBitmap(),
-                foreground = foreground?.let { layers(it).asImageBitmap() },
+                foreground = glyph?.asImageBitmap(),
                 monochrome = monochrome?.let { layers(it).asImageBitmap() },
                 adaptive = true,
                 plate = base,
-                accent = accent,
+                glyphLuminance = averageColor(glyph ?: full).luminance(),
             )
         }
-        val full = Bitmap.createBitmap(sizePx, sizePx, Bitmap.Config.ARGB_8888)
-        drawable.setBounds(0, 0, sizePx, sizePx)
+        // Cache a bitmap at up to its native resolution. Scaling and centering into the
+        // 68% content box are left to Compose, avoiding two resampling passes on old PNGs.
+        val source = (drawable as? BitmapDrawable)?.bitmap
+        val intrinsicWidth = source?.width ?: drawable.intrinsicWidth.takeIf { it > 0 } ?: sizePx
+        val intrinsicHeight = source?.height ?: drawable.intrinsicHeight.takeIf { it > 0 } ?: sizePx
+        val fit = sizePx.toFloat() / maxOf(intrinsicWidth, intrinsicHeight)
+        val scale = if (source != null) fit.coerceAtMost(1f) else fit
+        val width = (intrinsicWidth * scale).roundToInt().coerceAtLeast(1)
+        val height = (intrinsicHeight * scale).roundToInt().coerceAtLeast(1)
+        val full = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+        drawable.setBounds(0, 0, width, height)
         drawable.draw(Canvas(full))
         val accent = characteristicColor(full)
         return AppIconArt(
@@ -92,7 +104,7 @@ class IconLoader(context: Context, private val catalog: AppCatalog) {
             monochrome = null,
             adaptive = false,
             plate = lerp(Color.White, accent, 0.22f),
-            accent = accent,
+            glyphLuminance = averageColor(full).luminance(),
         )
     }
 
@@ -120,9 +132,12 @@ class IconLoader(context: Context, private val catalog: AppCatalog) {
         weightedColor(bitmap) { max, min -> 0.08f + if (max == 0f) 0f else (max - min) / max }
 
     private inline fun weightedColor(bitmap: Bitmap, weight: (max: Float, min: Float) -> Float): Color {
-        val small = Bitmap.createScaledBitmap(bitmap, 16, 16, true)
-        val pixels = IntArray(16 * 16)
-        small.getPixels(pixels, 0, 16, 0, 0, 16, 16)
+        val width = minOf(bitmap.width, 16)
+        val height = minOf(bitmap.height, 16)
+        val small = Bitmap.createScaledBitmap(bitmap, width, height, true)
+        val pixels = IntArray(width * height)
+        small.getPixels(pixels, 0, width, 0, 0, width, height)
+        if (small !== bitmap) small.recycle()
         var r = 0f
         var g = 0f
         var b = 0f
